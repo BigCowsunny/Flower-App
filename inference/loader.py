@@ -7,7 +7,7 @@ import streamlit as st
 
 MODEL_NAMES = ("MobileNetV2", "ResNet50", "EfficientNetB0")
 MODEL_FILES = {
-    "MobileNetV2": "candidate.keras",
+    "MobileNetV2": "best_model.keras",
     "ResNet50": "best_model.keras",
     "EfficientNetB0": "best_model.keras",
 }

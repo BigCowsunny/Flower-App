@@ -4,7 +4,7 @@
 
 แอปใช้ `models/EfficientNetB0/best_model.keras` เป็นค่าเริ่มต้น เมนู “เลือกโมเดล” แสดงตัวเลือกตามไฟล์โมเดลที่มีใน `model_root` เช่น EfficientNetB0, MobileNetV2 หรือ ResNet50 และใช้ภาพอัปโหลดทำนายด้วยรุ่นที่เลือก ส่วน `models/class_mapping.json` ใช้ร่วมกันทุกโมเดล การตรวจ pipeline เดิมยืนยัน 10 คลาส ลำดับตาม mapping และ input RGB 224×224 ช่วง 0–255
 
-ในเมนูเลือกโมเดล MobileNetV2 อ่านจาก `<model_root>/MobileNetV2/candidate.keras` ส่วน EfficientNetB0 และ ResNet50 อ่านจาก `<model_root>/<ชื่อโมเดล>/best_model.keras`
+ในเมนูเลือกโมเดล ทั้ง MobileNetV2, EfficientNetB0 และ ResNet50 อ่านจาก `<model_root>/<ชื่อโมเดล>/best_model.keras`
 
 ## ความต้องการ
 

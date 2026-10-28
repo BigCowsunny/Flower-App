@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+.streamlit/secrets.toml
+*.csv
+*.log
+.tmp/
+artifacts/
+models/ResNet50/
+models/EfficientNetB0/
+models/environment.json
+Thumbs.db
+.DS_Store

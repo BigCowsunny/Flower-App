@@ -1,0 +1,38 @@
+{
+  "class_to_index": {
+    "01_lotus_nelumbo_nucifera": 0,
+    "02_jasmine_jasminum_sambac": 1,
+    "03_marigold_tagetes_erecta": 2,
+    "04_rose_rosa": 3,
+    "05_chrysanthemum": 4,
+    "06_orchid_orchidaceae": 5,
+    "07_champak_magnolia_champaca": 6,
+    "08_frangipani_plumeria": 7,
+    "09_hibiscus_hibiscus_rosa_sinensis": 8,
+    "10_ixora": 9
+  },
+  "index_to_class": {
+    "0": "01_lotus_nelumbo_nucifera",
+    "1": "02_jasmine_jasminum_sambac",
+    "2": "03_marigold_tagetes_erecta",
+    "3": "04_rose_rosa",
+    "4": "05_chrysanthemum",
+    "5": "06_orchid_orchidaceae",
+    "6": "07_champak_magnolia_champaca",
+    "7": "08_frangipani_plumeria",
+    "8": "09_hibiscus_hibiscus_rosa_sinensis",
+    "9": "10_ixora"
+  },
+  "thai_names": {
+    "01_lotus_nelumbo_nucifera": "บัว",
+    "02_jasmine_jasminum_sambac": "มะลิ",
+    "03_marigold_tagetes_erecta": "ดาวเรือง",
+    "04_rose_rosa": "กุหลาบ",
+    "05_chrysanthemum": "เบญจมาศ",
+    "06_orchid_orchidaceae": "กล้วยไม้",
+    "07_champak_magnolia_champaca": "จำปา",
+    "08_frangipani_plumeria": "ลีลาวดี",
+    "09_hibiscus_hibiscus_rosa_sinensis": "ชบา",
+    "10_ixora": "เข็ม"
+  }
+}

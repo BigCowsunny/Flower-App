@@ -1,0 +1,21 @@
+[server]
+address = "localhost"
+port = 8501
+maxUploadSize = 10
+headless = true
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"
+
+[ui]
+hideTopBar = true
+
+[theme]
+base = "light"
+primaryColor = "#d3658f"
+backgroundColor = "#fffafd"
+secondaryBackgroundColor = "#fff3f7"
+textColor = "#493444"

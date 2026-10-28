@@ -6,6 +6,11 @@ from pathlib import Path
 import streamlit as st
 
 MODEL_NAMES = ("MobileNetV2", "ResNet50", "EfficientNetB0")
+MODEL_FILES = {
+    "MobileNetV2": "candidate.keras",
+    "ResNet50": "best_model.keras",
+    "EfficientNetB0": "best_model.keras",
+}
 
 
 def _read_mapping(root: Path) -> dict:
@@ -40,10 +45,12 @@ def load_bundle(model_root: str) -> dict:
 
 
 @st.cache_resource(show_spinner="กำลังโหลดโมเดล...")
-def load_model_cached(model_root: str, model_name: str, image_size: tuple[int, int], class_count: int):
+def load_model_cached(model_root: str, model_name: str, image_size: tuple[int, int], class_count: int, model_filename: str):
     if model_name not in MODEL_NAMES:
         raise ValueError(f"ไม่รู้จักโมเดล: {model_name}")
-    model_path = Path(model_root) / model_name / "best_model.keras"
+    if model_filename != MODEL_FILES[model_name]:
+        raise ValueError(f"ชื่อไฟล์โมเดลของ {model_name} ไม่ถูกต้อง: {model_filename}")
+    model_path = Path(model_root) / model_name / model_filename
     if not model_path.is_file():
         raise FileNotFoundError(f"ไม่พบไฟล์โมเดล: {model_path}")
     try:

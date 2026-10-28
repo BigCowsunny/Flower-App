@@ -8,7 +8,7 @@ from pathlib import Path
 import streamlit as st
 from PIL import Image, ImageOps
 
-from inference.loader import load_bundle, load_model_cached
+from inference.loader import MODEL_FILES, MODEL_NAMES, load_bundle, load_model_cached
 from inference.predictor import predict_one
 from inference.preprocess import prepare_image
 from inference.flower_info import flower_info
@@ -30,6 +30,7 @@ PREDICTION_MODEL = "EfficientNetB0"
 HOME_PAGE = "🏠 หน้าหลัก"
 UPLOAD_PAGE = "🖼️ อัปโหลดภาพ"
 CAMERA_PAGE = "📷 สแกนด้วยกล้อง"
+MODEL_SELECT_PAGE = "🧠 เลือกโมเดล"
 
 st.set_page_config(page_title="จำแนกดอกไม้", page_icon="🌼", layout="wide")
 
@@ -125,6 +126,7 @@ st.markdown("""
   .st-key-navigation label[data-baseweb="radio"]:nth-of-type(1) p::before {background-image:url("NAV_HOME_ICON");}
   .st-key-navigation label[data-baseweb="radio"]:nth-of-type(2) p::before {background-image:url("NAV_UPLOAD_ICON");}
   .st-key-navigation label[data-baseweb="radio"]:nth-of-type(3) p::before {background-image:url("NAV_SCAN_ICON");}
+  .st-key-navigation label[data-baseweb="radio"]:nth-of-type(4) p::before {content:"🧠"; background-image:none; filter:none; font-size:18px;}
   .st-key-app_hero .stButton {margin-top:.35rem;}
   [data-testid="stImage"] {display:flex; flex-direction:column; align-items:center; justify-content:center; width:100% !important; max-width:100%; min-width:0; box-sizing:border-box; overflow:hidden;}
   [data-testid="stImage"] img {display:block; width:100% !important; max-width:100% !important; height:auto !important; margin-inline:auto !important; object-fit:contain;}
@@ -138,7 +140,7 @@ st.markdown("""
     [data-testid="stHorizontalBlock"] {flex-wrap:wrap !important; gap:.65rem !important;}
     [data-testid="stHorizontalBlock"] > [data-testid="column"] {min-width:100% !important; flex:1 1 100% !important;}
     .st-key-navigation {bottom:max(10px, env(safe-area-inset-bottom)); padding:.3rem; border-radius:19px;}
-    .st-key-navigation label[data-baseweb="radio"] {flex-basis:72px; min-height:3.2rem; padding:.3rem .08rem;}
+    .st-key-navigation label[data-baseweb="radio"] {flex-basis:calc((100vw - 56px) / 4); min-height:3.2rem; padding:.3rem .08rem;}
     .st-key-navigation label[data-baseweb="radio"] p {font-size:clamp(.62rem,2.8vw,.75rem);}
     .st-key-navigation label[data-baseweb="radio"] p::before {width:19px; height:19px;}
     .st-key-upload_previews [data-testid="stHorizontalBlock"] {gap:.5rem !important;}
@@ -161,13 +163,20 @@ if STARTUP_ERROR:
     st.error(f"เริ่มระบบไม่ได้: {STARTUP_ERROR}\n\nตรวจสอบ path ใน config/settings.json และไฟล์โมเดลกับ class_mapping.json")
     st.stop()
 
+AVAILABLE_MODELS = tuple(
+    name for name in MODEL_NAMES
+    if (Path(BUNDLE["root"]) / name / MODEL_FILES[name]).is_file()
+)
+
 for state_key, default in {
     "results": None,
     "upload_token": 0,
+    "model_upload_token": 0,
     "camera_mode": False,
     "camera_token": 0,
     "confirmed_camera_photo": None,
     "uploaded_items": [],
+    "model_uploaded_items": [],
     "active_page": HOME_PAGE,
 }.items():
     if state_key not in st.session_state:
@@ -191,6 +200,18 @@ def remember_uploads() -> None:
         st.session_state.results = None
 
 
+def remember_model_uploads() -> None:
+    selected = st.session_state.get(f"model_uploads_{st.session_state.model_upload_token}") or []
+    st.session_state.model_uploaded_items = [{"name": item.name, "raw": item.getvalue()} for item in selected]
+    if st.session_state.results and st.session_state.results.get("source") == MODEL_SELECT_PAGE:
+        st.session_state.results = None
+
+
+def clear_model_results() -> None:
+    if st.session_state.results and st.session_state.results.get("source") == MODEL_SELECT_PAGE:
+        st.session_state.results = None
+
+
 def retake_photo() -> None:
     st.session_state.camera_token += 1
     st.session_state.confirmed_camera_photo = None
@@ -204,8 +225,8 @@ st.markdown('<div class="topline">🌸 Flower APP <span style="color:#a38b98;fon
 
 with st.container(key="navigation"):
     active_page = st.radio(
-        "เมนูหลัก", [HOME_PAGE, UPLOAD_PAGE, CAMERA_PAGE],
-        format_func=lambda page: {HOME_PAGE: "หน้าแรก", UPLOAD_PAGE: "อัปโหลด", CAMERA_PAGE: "สแกนกล้อง"}[page],
+        "เมนูหลัก", [HOME_PAGE, UPLOAD_PAGE, CAMERA_PAGE, MODEL_SELECT_PAGE],
+        format_func=lambda page: {HOME_PAGE: "หน้าแรก", UPLOAD_PAGE: "อัปโหลด", CAMERA_PAGE: "สแกนกล้อง", MODEL_SELECT_PAGE: "เลือกโมเดล"}[page],
         horizontal=True, key="active_page", label_visibility="collapsed", on_change=on_page_change,
     )
 
@@ -221,6 +242,8 @@ if active_page == HOME_PAGE:
                       on_click=go_to_page, args=(UPLOAD_PAGE,))
             st.button("📷 สแกนด้วยกล้อง", use_container_width=True,
                       on_click=go_to_page, args=(CAMERA_PAGE,))
+            st.button("🧠 เลือกโมเดล", use_container_width=True,
+                      on_click=go_to_page, args=(MODEL_SELECT_PAGE,))
         with mascot:
             if MASCOT_PATH.is_file():
                 st.image(str(MASCOT_PATH), width="stretch")
@@ -236,6 +259,15 @@ if active_page == UPLOAD_PAGE:
         st.caption("เลือกภาพหนึ่งภาพหรือหลายภาพ แล้วตรวจสอบภาพตัวอย่างก่อนเริ่มทำนาย")
         st.file_uploader("เลือกรูปภาพ", type=["jpg", "jpeg", "png", "webp"], accept_multiple_files=True,
                          key=f"uploads_{st.session_state.upload_token}", label_visibility="collapsed", on_change=remember_uploads)
+elif active_page == MODEL_SELECT_PAGE:
+    st.markdown("## เลือกโมเดลทำนาย")
+    st.caption("เลือกรุ่นโมเดล แล้วอัปโหลดภาพเพื่อให้โมเดลนั้นทำนาย")
+    st.selectbox("โมเดล", AVAILABLE_MODELS, key="selected_model", on_change=clear_model_results)
+    with st.container(key="upload_card"):
+        st.markdown("### 🖼️ เลือกภาพจากอุปกรณ์")
+        st.caption("เลือกภาพหนึ่งภาพหรือหลายภาพ แล้วตรวจสอบภาพตัวอย่างก่อนเริ่มทำนาย")
+        st.file_uploader("เลือกรูปภาพ", type=["jpg", "jpeg", "png", "webp"], accept_multiple_files=True,
+                         key=f"model_uploads_{st.session_state.model_upload_token}", label_visibility="collapsed", on_change=remember_model_uploads)
 else:
     st.markdown("## สแกนดอกไม้ด้วยกล้อง")
     st.caption("ถ่ายภาพดอกไม้ แล้วตรวจสอบและยืนยันภาพก่อนเริ่มทำนาย")
@@ -262,6 +294,8 @@ if active_page == CAMERA_PAGE and st.session_state.camera_mode:
                 st.button("🔄  ถ่ายใหม่", use_container_width=True, on_click=retake_photo)
 
 input_items = list(st.session_state.uploaded_items) if active_page == UPLOAD_PAGE else []
+if active_page == MODEL_SELECT_PAGE:
+    input_items = list(st.session_state.model_uploaded_items)
 if active_page == CAMERA_PAGE and st.session_state.confirmed_camera_photo is not None:
     input_items.append({"name": "ภาพสแกนจากกล้อง.jpg", "raw": st.session_state.confirmed_camera_photo})
 
@@ -323,14 +357,14 @@ if st.button("เริ่มทำนาย", type="primary", disabled=not vali
             progress.progress(i / len(valid_uploads), text=f"เตรียมภาพ {i}/{len(valid_uploads)}")
 
         model_results = {}
-        model_name = PREDICTION_MODEL
+        model_name = st.session_state.selected_model if active_page == MODEL_SELECT_PAGE else PREDICTION_MODEL
         status.update(label=f"กำลังทำนายด้วย {model_name}")
         try:
-            model = load_model_cached(BUNDLE["root"], model_name, BUNDLE["image_size"], BUNDLE["class_count"])
+            model = load_model_cached(BUNDLE["root"], model_name, BUNDLE["image_size"], BUNDLE["class_count"], MODEL_FILES[model_name])
             model_results[model_name] = [predict_one(model, row["pixels"], BUNDLE["classes"], BUNDLE["thai_names"]) for row in records]
         except Exception as exc:
             failures.append({"filename": "—", "error": f"โมเดล {model_name} ทำนายไม่ได้: {exc}"})
-        st.session_state.results = {"records": records, "model_results": model_results, "failures": failures, "models": [PREDICTION_MODEL], "source": active_page}
+        st.session_state.results = {"records": records, "model_results": model_results, "failures": failures, "models": [model_name], "source": active_page}
         status.update(label="ทำนายเสร็จแล้ว", state="complete", expanded=False)
 
 results = st.session_state.results

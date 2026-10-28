@@ -1,6 +1,6 @@
 # Flower APP
 
-เว็บแอป Streamlit ภาษาไทยสำหรับจำแนกดอกไม้ด้วย MobileNetV2 และแสดงชื่อวิทยาศาสตร์กับข้อมูลประกอบทางพุทธศาสนา
+เว็บแอป Streamlit ภาษาไทยสำหรับจำแนกดอกไม้ด้วย EfficientNetB0 และแสดงชื่อวิทยาศาสตร์กับข้อมูลประกอบทางพุทธศาสนา
 
 ## เริ่มต้นใช้งานบน Windows
 
@@ -20,4 +20,4 @@ py -3.12 -m venv .venv
 
 แล้วเปิด http://localhost:8501 ในเบราว์เซอร์
 
-ไฟล์ MobileNetV2 และ class mapping ที่จำเป็นอยู่ใน `models/` หากย้ายไฟล์โมเดล ให้แก้ `model_root` ใน `config/settings.json` รายละเอียดเพิ่มเติมอยู่ใน [README ภาษาไทย](README_TH.md)
+ไฟล์ EfficientNetB0 และ class mapping ที่จำเป็นอยู่ใน `models/` หากย้ายไฟล์โมเดล ให้แก้ `model_root` ใน `config/settings.json` รายละเอียดเพิ่มเติมอยู่ใน [README ภาษาไทย](README_TH.md)

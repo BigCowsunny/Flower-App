@@ -8,6 +8,8 @@ __pycache__/
 artifacts/
 models/ResNet50/
 models/EfficientNetB0/
+!models/EfficientNetB0/
+!models/EfficientNetB0/best_model.keras
 models/environment.json
 Thumbs.db
 .DS_Store

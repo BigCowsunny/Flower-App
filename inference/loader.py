@@ -7,9 +7,9 @@ import streamlit as st
 
 MODEL_NAMES = ("MobileNetV2", "ResNet50", "EfficientNetB0")
 MODEL_FILES = {
-    "MobileNetV2": "best_model.keras",
-    "ResNet50": "best_model.keras",
-    "EfficientNetB0": "best_model.keras",
+    "MobileNetV2": "MobileNetV2.keras",
+    "ResNet50": "ResNet50.keras",
+    "EfficientNetB0": "EfficientNetB0.keras",
 }
 
 
@@ -55,7 +55,29 @@ def load_model_cached(model_root: str, model_name: str, image_size: tuple[int, i
         raise FileNotFoundError(f"ไม่พบไฟล์โมเดล: {model_path}")
     try:
         import tensorflow as tf
-        model = tf.keras.models.load_model(model_path, compile=False, safe_mode=True)
+
+        class ApplicationPreprocess(tf.keras.layers.Layer):
+            def __init__(self, model_key: str, **kwargs):
+                super().__init__(**kwargs)
+                self.model_key = model_key
+
+            def call(self, inputs):
+                preprocessors = {
+                    "MobileNetV2": tf.keras.applications.mobilenet_v2.preprocess_input,
+                    "ResNet50": tf.keras.applications.resnet50.preprocess_input,
+                    "EfficientNetB0": tf.keras.applications.efficientnet.preprocess_input,
+                }
+                return preprocessors[self.model_key](inputs)
+
+            def get_config(self):
+                return {**super().get_config(), "model_key": self.model_key}
+
+        model = tf.keras.models.load_model(
+            model_path,
+            compile=False,
+            safe_mode=True,
+            custom_objects={"FlowerExperiment>ApplicationPreprocess": ApplicationPreprocess},
+        )
     except Exception as exc:
         raise RuntimeError(f"โหลด {model_name} ไม่สำเร็จ: {exc}") from exc
     expected = (None, int(image_size[0]), int(image_size[1]), 3)

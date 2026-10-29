@@ -7,6 +7,8 @@ __pycache__/
 .tmp/
 artifacts/
 models/ResNet50/
+!models/ResNet50/
+!models/ResNet50/ResNet50.keras
 models/EfficientNetB0/
 !models/EfficientNetB0/
 !models/EfficientNetB0/best_model.keras

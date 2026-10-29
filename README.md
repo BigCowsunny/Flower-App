@@ -20,4 +20,4 @@ py -3.12 -m venv .venv
 
 แล้วเปิด http://localhost:8501 ในเบราว์เซอร์
 
-ไฟล์โมเดลและ class mapping ที่จำเป็นอยู่ใน `models/` หน้า “เลือกโมเดล” ให้เลือก EfficientNetB0, MobileNetV2 หรือ ResNet50 แล้วอัปโหลดภาพเพื่อทำนาย โดย MobileNetV2 ใช้ `models/MobileNetV2/best_model.keras` หากย้ายไฟล์โมเดล ให้แก้ `model_root` ใน `config/settings.json` รายละเอียดเพิ่มเติมอยู่ใน [README ภาษาไทย](README_TH.md)
+ไฟล์โมเดลและ class mapping ที่จำเป็นอยู่ใน `models/` หน้า “เลือกโมเดล” ให้เลือก EfficientNetB0, MobileNetV2 หรือ ResNet50 แล้วอัปโหลดภาพเพื่อทำนาย แต่ละรุ่นอ่านไฟล์ชื่อเดียวกับรุ่น เช่น `models/MobileNetV2/MobileNetV2.keras` หากย้ายไฟล์โมเดล ให้แก้ `model_root` ใน `config/settings.json` รายละเอียดเพิ่มเติมอยู่ใน [README ภาษาไทย](README_TH.md)

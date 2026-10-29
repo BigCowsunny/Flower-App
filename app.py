@@ -12,6 +12,7 @@ from inference.loader import MODEL_FILES, MODEL_NAMES, load_bundle, load_model_c
 from inference.predictor import predict_one
 from inference.preprocess import prepare_image
 from inference.flower_info import flower_info
+from inference.translations import text as ui_text
 
 
 ROOT = Path(__file__).resolve().parent
@@ -32,7 +33,7 @@ UPLOAD_PAGE = "🖼️ อัปโหลดภาพ"
 CAMERA_PAGE = "📷 สแกนด้วยกล้อง"
 MODEL_SELECT_PAGE = "🧠 เลือกโมเดล"
 
-st.set_page_config(page_title="จำแนกดอกไม้", page_icon="🌼", layout="wide")
+st.set_page_config(page_title="Flower APP", page_icon="🌼", layout="wide")
 
 
 def read_settings() -> dict:
@@ -110,6 +111,12 @@ st.markdown("""
   .st-key-navigation {position:fixed; z-index:1000; bottom:max(12px, env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%);
     width:fit-content; max-width:calc(100vw - 24px); margin:0; padding:.4rem; background:rgba(255,255,255,.98);
     border:1px solid #f0d7e1; border-radius:22px; box-shadow:0 8px 28px #7e435822; backdrop-filter:blur(14px);}
+  .st-key-app_header [data-testid="stRadio"] > label {display:none;}
+  .st-key-app_header [role="radiogroup"] {justify-content:flex-end; gap:0 !important; padding:.2rem; background:#fff;
+    border:1px solid #f0d7e1; border-radius:999px;}
+  .st-key-app_header label[data-baseweb="radio"] {margin:0; padding:.3rem .65rem; border-radius:999px; color:#806d79; cursor:pointer;}
+  .st-key-app_header label[data-baseweb="radio"]:has(input:checked) {background:#ffe6ef; color:#a94770; font-weight:700;}
+  .st-key-app_header label[data-baseweb="radio"] > div:first-child {position:absolute; opacity:0; width:1px; height:1px; overflow:hidden;}
   .st-key-navigation [role="radiogroup"] {display:flex !important; flex-wrap:nowrap !important; gap:.25rem !important;
     width:max-content !important; max-width:100%; justify-content:center !important; margin-inline:auto !important;}
   .st-key-navigation label[data-baseweb="radio"] {display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -160,7 +167,8 @@ st.markdown("""
    .replace("NAV_SCAN_ICON", "data:image/png;base64," + base64.b64encode(NAV_ICON_PATHS["scan"].read_bytes()).decode("ascii")), unsafe_allow_html=True)
 
 if STARTUP_ERROR:
-    st.error(f"เริ่มระบบไม่ได้: {STARTUP_ERROR}\n\nตรวจสอบ path ใน config/settings.json และไฟล์โมเดลกับ class_mapping.json")
+    startup_language = st.session_state.get("language", "TH")
+    st.error(ui_text("startup_error", startup_language, error=STARTUP_ERROR))
     st.stop()
 
 AVAILABLE_MODELS = tuple(
@@ -177,6 +185,7 @@ for state_key, default in {
     "confirmed_camera_photo": None,
     "uploaded_items": [],
     "model_uploaded_items": [],
+    "language": "TH",
     "active_page": HOME_PAGE,
 }.items():
     if state_key not in st.session_state:
@@ -220,13 +229,23 @@ def retake_photo() -> None:
         st.session_state.results = None
 
 
+with st.container(key="app_header"):
+    brand_col, language_col = st.columns([5, 1], vertical_alignment="center")
+    with brand_col:
+        st.markdown('<div class="topline">🌸 Flower APP <span style="color:#a38b98;font-weight:500;letter-spacing:0">· FLOWER IDENTIFIER</span></div>', unsafe_allow_html=True)
+    with language_col:
+        st.radio("TH / EN", ["TH", "EN"], horizontal=True, key="language", label_visibility="collapsed")
+
+language = st.session_state.language
+def t(key: str, **values) -> str:
+    return ui_text(key, language, **values)
+
 active_page = st.session_state.active_page
-st.markdown('<div class="topline">🌸 Flower APP <span style="color:#a38b98;font-weight:500;letter-spacing:0">· FLOWER IDENTIFIER</span></div>', unsafe_allow_html=True)
 
 with st.container(key="navigation"):
     active_page = st.radio(
-        "เมนูหลัก", [HOME_PAGE, UPLOAD_PAGE, CAMERA_PAGE, MODEL_SELECT_PAGE],
-        format_func=lambda page: {HOME_PAGE: "หน้าแรก", UPLOAD_PAGE: "อัปโหลด", CAMERA_PAGE: "สแกนกล้อง", MODEL_SELECT_PAGE: "เลือกโมเดล"}[page],
+        t("main_menu"), [HOME_PAGE, UPLOAD_PAGE, CAMERA_PAGE, MODEL_SELECT_PAGE],
+        format_func=lambda page: {HOME_PAGE: t("nav_home"), UPLOAD_PAGE: t("nav_upload"), CAMERA_PAGE: t("nav_camera"), MODEL_SELECT_PAGE: t("nav_models")}[page],
         horizontal=True, key="active_page", label_visibility="collapsed", on_change=on_page_change,
     )
 
@@ -234,73 +253,73 @@ if active_page == HOME_PAGE:
     with st.container(key="app_hero"):
         intro, mascot = st.columns([1.65, 1], vertical_alignment="center")
         with intro:
-            st.markdown('<div class="topline">ผู้ช่วยรู้จักดอกไม้ของคุณ</div>', unsafe_allow_html=True)
-            st.markdown("# ยินดีต้อนรับสู่ Flower APP")
-            st.write("ค้นพบชื่อและเรื่องราวของดอกไม้จากภาพถ่าย พร้อมชื่อวิทยาศาสตร์และความเกี่ยวข้องทางพุทธศาสนา")
-            st.markdown("**เริ่มต้นด้วยวิธีที่คุณสะดวก**")
-            st.button("🖼️ อัปโหลดภาพ", type="primary", use_container_width=True,
+            st.markdown(f'<div class="topline">{t("home_helper")}</div>', unsafe_allow_html=True)
+            st.title(t("welcome"))
+            st.write(t("home_description"))
+            st.write(t("start"))
+            st.button(t("button_upload"), type="primary", use_container_width=True,
                       on_click=go_to_page, args=(UPLOAD_PAGE,))
-            st.button("📷 สแกนด้วยกล้อง", use_container_width=True,
+            st.button(t("button_camera"), use_container_width=True,
                       on_click=go_to_page, args=(CAMERA_PAGE,))
-            st.button("🧠 เลือกโมเดล", use_container_width=True,
+            st.button(t("button_models"), use_container_width=True,
                       on_click=go_to_page, args=(MODEL_SELECT_PAGE,))
         with mascot:
             if MASCOT_PATH.is_file():
                 st.image(str(MASCOT_PATH), width="stretch")
-    st.markdown("### รู้จักดอกไม้ได้ใน 3 ขั้นตอน")
-    st.markdown('<div class="workflow-steps"><span><b>01</b> อัปโหลดหรือถ่ายภาพ</span><span><b>02</b> ตรวจสอบและเริ่มทำนาย</span><span><b>03</b> อ่านข้อมูลดอกไม้</span></div>', unsafe_allow_html=True)
+    st.markdown(f"### {t('workflow_title')}")
+    st.markdown(f'<div class="workflow-steps"><span><b>01</b> {t("step_1")}</span><span><b>02</b> {t("step_2")}</span><span><b>03</b> {t("step_3")}</span></div>', unsafe_allow_html=True)
     st.stop()
 
 if active_page == UPLOAD_PAGE:
-    st.markdown("## อัปโหลดภาพดอกไม้")
-    st.caption("รองรับ JPG, JPEG, PNG และ WebP · สูงสุด 20 ภาพ ภาพละไม่เกิน 10 MB และไม่เกิน 40 ล้านพิกเซล")
+    st.markdown(f"## {t('upload_title')}")
+    st.caption(t("upload_limits"))
     with st.container(key="upload_card"):
-        st.markdown("### 🖼️ เลือกภาพจากอุปกรณ์")
-        st.caption("เลือกภาพหนึ่งภาพหรือหลายภาพ แล้วตรวจสอบภาพตัวอย่างก่อนเริ่มทำนาย")
-        st.file_uploader("เลือกรูปภาพ", type=["jpg", "jpeg", "png", "webp"], accept_multiple_files=True,
+        st.markdown(f"### {t('select_images')}")
+        st.caption(t("select_images_hint"))
+        st.file_uploader(t("file_uploader"), type=["jpg", "jpeg", "png", "webp"], accept_multiple_files=True,
                          key=f"uploads_{st.session_state.upload_token}", label_visibility="collapsed", on_change=remember_uploads)
 elif active_page == MODEL_SELECT_PAGE:
-    st.markdown("## เลือกโมเดลทำนาย")
-    st.caption("เลือกรุ่นโมเดล แล้วอัปโหลดภาพเพื่อให้โมเดลนั้นทำนาย")
-    st.selectbox("โมเดล", AVAILABLE_MODELS, key="selected_model", on_change=clear_model_results)
+    st.markdown(f"## {t('model_title')}")
+    st.caption(t("model_hint"))
+    st.selectbox(t("model_label"), AVAILABLE_MODELS, key="selected_model", on_change=clear_model_results)
     with st.container(key="upload_card"):
-        st.markdown("### 🖼️ เลือกภาพจากอุปกรณ์")
-        st.caption("เลือกภาพหนึ่งภาพหรือหลายภาพ แล้วตรวจสอบภาพตัวอย่างก่อนเริ่มทำนาย")
-        st.file_uploader("เลือกรูปภาพ", type=["jpg", "jpeg", "png", "webp"], accept_multiple_files=True,
+        st.markdown(f"### {t('select_images')}")
+        st.caption(t("select_images_hint"))
+        st.file_uploader(t("file_uploader"), type=["jpg", "jpeg", "png", "webp"], accept_multiple_files=True,
                          key=f"model_uploads_{st.session_state.model_upload_token}", label_visibility="collapsed", on_change=remember_model_uploads)
 else:
-    st.markdown("## สแกนดอกไม้ด้วยกล้อง")
-    st.caption("ถ่ายภาพดอกไม้ แล้วตรวจสอบและยืนยันภาพก่อนเริ่มทำนาย")
+    st.markdown(f"## {t('camera_title')}")
+    st.caption(t("camera_hint"))
     if st.session_state.confirmed_camera_photo is not None:
-        st.button("📷 ถ่ายภาพใหม่", on_click=retake_photo, use_container_width=True)
+        st.button(t("retake"), on_click=retake_photo, use_container_width=True)
 
 camera_photo = None
 if active_page == CAMERA_PAGE and st.session_state.camera_mode:
     with st.container(key="camera_capture"):
-        st.markdown("### 📸 ถ่ายภาพดอกไม้")
-        st.caption("จัดดอกไม้ให้อยู่ในกรอบ แล้วกดถ่ายภาพ · ต้องอนุญาตการใช้กล้องในเบราว์เซอร์")
-        camera_photo = st.camera_input("ถ่ายภาพ", key=f"camera_{st.session_state.camera_token}", label_visibility="collapsed")
+        st.markdown(f"### {t('camera_heading')}")
+        st.caption(t("camera_permission"))
+        camera_photo = st.camera_input(t("camera_heading"), key=f"camera_{st.session_state.camera_token}", label_visibility="collapsed")
         if camera_photo is not None:
-            st.markdown("#### ตรวจสอบภาพก่อนใช้")
-            st.image(camera_photo, caption="ภาพที่ถ่ายจากกล้อง", width="stretch")
-            st.caption("ภาพจะยังไม่ถูกส่งให้โมเดลจนกว่าจะกดยืนยัน")
+            st.subheader(t("review_photo"))
+            st.image(camera_photo, caption=t("camera_photo"), width="stretch")
+            st.caption(t("camera_not_sent"))
             confirm_col, retry_col = st.columns(2)
             with confirm_col:
-                if st.button("✅  ยืนยันภาพนี้", type="primary", use_container_width=True):
+                if st.button(t("confirm_photo"), type="primary", use_container_width=True):
                     st.session_state.confirmed_camera_photo = camera_photo.getvalue()
                     st.session_state.camera_mode = False
                     st.rerun()
             with retry_col:
-                st.button("🔄  ถ่ายใหม่", use_container_width=True, on_click=retake_photo)
+                st.button(t("retake_short"), use_container_width=True, on_click=retake_photo)
 
 input_items = list(st.session_state.uploaded_items) if active_page == UPLOAD_PAGE else []
 if active_page == MODEL_SELECT_PAGE:
     input_items = list(st.session_state.model_uploaded_items)
 if active_page == CAMERA_PAGE and st.session_state.confirmed_camera_photo is not None:
-    input_items.append({"name": "ภาพสแกนจากกล้อง.jpg", "raw": st.session_state.confirmed_camera_photo})
+    input_items.append({"name": t("camera_filename"), "raw": st.session_state.confirmed_camera_photo})
 
 if len(input_items) > MAX_FILES:
-    st.error(f"เลือกได้ไม่เกิน {MAX_FILES} ภาพ กรุณาลดจำนวนภาพ")
+    st.error(t("too_many_images", count=MAX_FILES))
     st.stop()
 
 valid_uploads = []
@@ -309,10 +328,10 @@ for uploaded in input_items:
     suffix = Path(uploaded["name"]).suffix.lower()
     raw = uploaded["raw"]
     if suffix not in ALLOWED_SUFFIXES:
-        bad_files.append((uploaded["name"], "ชนิดไฟล์ไม่รองรับ"))
+        bad_files.append((uploaded["name"], t("unsupported_type")))
         continue
     if len(raw) > MAX_FILE_BYTES:
-        bad_files.append((uploaded["name"], "ไฟล์ใหญ่กว่า 10 MB"))
+        bad_files.append((uploaded["name"], t("file_too_large")))
         continue
     try:
         with Image.open(io.BytesIO(raw)) as probe:
@@ -321,58 +340,58 @@ for uploaded in input_items:
             opened.load()
             oriented = ImageOps.exif_transpose(opened).convert("RGB")
             if oriented.width * oriented.height > MAX_IMAGE_PIXELS:
-                bad_files.append((uploaded["name"], "ภาพมีขนาดเกิน 40 ล้านพิกเซล"))
+                bad_files.append((uploaded["name"], t("image_too_large")))
                 continue
             preview = oriented.copy()
         valid_uploads.append({"name": uploaded["name"], "raw": raw, "preview": preview})
     except Exception as exc:
-        bad_files.append((uploaded["name"], f"เปิดภาพไม่ได้ ({type(exc).__name__})"))
+        bad_files.append((uploaded["name"], t("image_open_error", kind=type(exc).__name__)))
 
 if bad_files:
-    with st.expander(f"ไฟล์ที่ข้าม ({len(bad_files)})", expanded=True):
+    with st.expander(t("skipped_files", count=len(bad_files)), expanded=True):
         for name, reason in bad_files:
             st.warning(f"{name}: {reason}")
 
 if valid_uploads:
-    st.subheader(f"ภาพตัวอย่าง · {len(valid_uploads)} ภาพ")
+    st.subheader(t("preview_count", count=len(valid_uploads)))
     with st.container(key="upload_previews"):
         columns = st.columns(min(4, len(valid_uploads)))
         for i, item in enumerate(valid_uploads):
             with columns[i % len(columns)]:
                 st.image(item["preview"], caption=item["name"], use_container_width=True)
 if active_page == CAMERA_PAGE and st.session_state.confirmed_camera_photo is not None:
-    st.success(f"ยืนยันภาพจากกล้องแล้ว · ภาพนี้จะถูกส่งให้ {PREDICTION_MODEL} เมื่อกดเริ่มทำนาย")
+    st.success(t("camera_confirmed", model=PREDICTION_MODEL))
 
-if st.button("เริ่มทำนาย", type="primary", disabled=not valid_uploads, use_container_width=True):
+if st.button(t("predict"), type="primary", disabled=not valid_uploads, use_container_width=True):
     records = []
     failures = []
-    with st.status("กำลังเตรียมภาพและทำนาย...", expanded=True) as status:
+    with st.status(t("preparing"), expanded=True) as status:
         progress = st.progress(0)
         for i, item in enumerate(valid_uploads, 1):
             try:
                 pixels = prepare_image(item["raw"], BUNDLE["image_size"])
                 records.append({"filename": item["name"], "pixels": pixels, "preview": item["preview"]})
             except Exception as exc:
-                failures.append({"filename": item["name"], "error": f"เตรียมภาพไม่ได้: {exc}"})
-            progress.progress(i / len(valid_uploads), text=f"เตรียมภาพ {i}/{len(valid_uploads)}")
+                failures.append({"filename": item["name"], "error": t("prepare_error", error=exc)})
+            progress.progress(i / len(valid_uploads), text=t("preparing_progress", current=i, total=len(valid_uploads)))
 
         model_results = {}
         model_name = st.session_state.selected_model if active_page == MODEL_SELECT_PAGE else PREDICTION_MODEL
-        status.update(label=f"กำลังทำนายด้วย {model_name}")
+        status.update(label=t("predicting_model", model=model_name))
         try:
             model = load_model_cached(BUNDLE["root"], model_name, BUNDLE["image_size"], BUNDLE["class_count"], MODEL_FILES[model_name])
             model_results[model_name] = [predict_one(model, row["pixels"], BUNDLE["classes"], BUNDLE["thai_names"]) for row in records]
         except Exception as exc:
-            failures.append({"filename": "—", "error": f"โมเดล {model_name} ทำนายไม่ได้: {exc}"})
+            failures.append({"filename": "—", "error": t("model_error", model=model_name, error=exc)})
         st.session_state.results = {"records": records, "model_results": model_results, "failures": failures, "models": [model_name], "source": active_page}
-        status.update(label="ทำนายเสร็จแล้ว", state="complete", expanded=False)
+        status.update(label=t("prediction_done"), state="complete", expanded=False)
 
 results = st.session_state.results
 if results and results.get("source") == active_page:
     for failure in results["failures"]:
         st.warning(f"{failure['filename']}: {failure['error']}")
     if results["records"] and results["model_results"]:
-        st.markdown('<h2 class="section-title">🌿 ผลการทำนาย</h2>', unsafe_allow_html=True)
+        st.markdown(f'<h2 class="section-title">{t("prediction_heading")}</h2>', unsafe_allow_html=True)
         for image_index, record in enumerate(results["records"]):
             with st.container(border=True):
                 with st.container(key="result_image"):
@@ -381,19 +400,19 @@ if results and results.get("source") == active_page:
                     if model_name not in results["model_results"]:
                         continue
                     prediction = results["model_results"][model_name][image_index]
-                    info = flower_info(prediction["class_name"])
+                    info = flower_info(prediction["class_name"], language)
+                    flower_name = info["common_name"] or prediction["thai_name"]
                     with st.container(border=True):
                         st.markdown(
                             f'<div class="flower-heading"><div class="flower-badge">🌼</div><div>'
-                            f'<div class="flower-name">{prediction["thai_name"]}</div>'
+                            f'<div class="flower-name">{flower_name}</div>'
                             f'<div class="flower-scientific">{info["scientific_name"]}</div></div></div>'
-                            f'<span class="result-status">🌿 จำแนกได้</span>',
+                            f'<span class="result-status">{t("classified")}</span>',
                             unsafe_allow_html=True,
                         )
-                        st.metric("ความมั่นใจของโมเดล", f"{prediction['confidence'] * 100:.2f}%")
-                        st.markdown("#### ดอกไม้นี้คืออะไร")
-                        st.write(info["description"])
-                    with st.expander(f"🪷 ความเกี่ยวข้องของดอก{prediction['thai_name']}กับพระพุทธศาสนา", expanded=True):
-                        st.markdown(info["buddhist_note"])
-                        st.caption("ธรรมเนียมและความหมายของดอกไม้อาจแตกต่างกันตามประเทศ นิกาย และชุมชน")
+                        st.metric(t("confidence"), f"{prediction['confidence'] * 100:.2f}%")
+                    with st.expander(t("flower_details"), expanded=True):
+                        st.write(f"{t('background')}: {info['details']['background']}")
+                        st.write(f"{t('meaning')}: {info['details']['meaning']}")
+                        st.write(f"{t('temple')}: {info['details']['temple']}")
                     st.divider()

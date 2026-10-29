@@ -2,6 +2,8 @@
 
 เว็บแอป Streamlit ภาษาไทยสำหรับจำแนกดอกไม้ด้วย EfficientNetB0 หรือเลือกรุ่นโมเดลเอง และแสดงชื่อวิทยาศาสตร์กับข้อมูลประกอบทางพุทธศาสนา
 
+The interface includes a TH/EN language switch, with flower descriptions in Thai and English.
+
 ## เริ่มต้นใช้งานบน Windows
 
 ต้องมี Python 3.12 แบบ 64-bit จากนั้นเปิด PowerShell ที่โฟลเดอร์นี้:

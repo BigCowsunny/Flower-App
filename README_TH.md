@@ -2,6 +2,8 @@
 
 เว็บแอป Streamlit ภาษาไทยสำหรับใช้ EfficientNetB0 ทำนายภาพเป็นค่าเริ่มต้น หรือเลือกโมเดลที่ติดตั้งไว้จากเมนูเลือกโมเดล เช่น EfficientNetB0, MobileNetV2 และ ResNet50 ทำงานในเครื่อง ไม่มีการฝึก/แก้โมเดล ไม่มีการสร้าง augmentation และไม่ส่งรูปไปบริการภายนอก รองรับ CPU
 
+มีปุ่ม TH/EN สำหรับสลับภาษาของเมนูและรายละเอียดดอกไม้ระหว่างภาษาไทยกับภาษาอังกฤษ
+
 แอปใช้ `models/EfficientNetB0/EfficientNetB0.keras` เป็นค่าเริ่มต้น เมนู “เลือกโมเดล” แสดงตัวเลือกตามไฟล์โมเดลที่มีใน `model_root` และใช้ภาพอัปโหลดทำนายด้วยรุ่นที่เลือก ส่วน `models/class_mapping.json` ใช้ร่วมกันทุกโมเดล การตรวจ pipeline เดิมยืนยัน 10 คลาส ลำดับตาม mapping และ input RGB 224×224 ช่วง 0–255
 
 แต่ละโมเดลอ่านไฟล์ชื่อเดียวกับรุ่น: `<model_root>/MobileNetV2/MobileNetV2.keras`, `<model_root>/ResNet50/ResNet50.keras` และ `<model_root>/EfficientNetB0/EfficientNetB0.keras`

@@ -187,18 +187,26 @@ for state_key, default in {
     "model_uploaded_items": [],
     "language": "TH",
     "active_page": HOME_PAGE,
+    "current_page": HOME_PAGE,
 }.items():
     if state_key not in st.session_state:
         st.session_state[state_key] = default
 
 
 def on_page_change() -> None:
+    st.session_state.current_page = st.session_state.active_page
     if st.session_state.active_page == CAMERA_PAGE and st.session_state.confirmed_camera_photo is None:
         st.session_state.camera_mode = True
 
 
+def on_language_change() -> None:
+    # Keep the selected screen when changing languages triggers a rerun.
+    st.session_state.active_page = st.session_state.current_page
+
+
 def go_to_page(page: str) -> None:
     st.session_state.active_page = page
+    st.session_state.current_page = page
     on_page_change()
 
 
@@ -234,7 +242,7 @@ with st.container(key="app_header"):
     with brand_col:
         st.markdown('<div class="topline">🌸 Flower APP <span style="color:#a38b98;font-weight:500;letter-spacing:0">· FLOWER IDENTIFIER</span></div>', unsafe_allow_html=True)
     with language_col:
-        st.radio("TH / EN", ["TH", "EN"], horizontal=True, key="language", label_visibility="collapsed")
+        st.radio("TH / EN", ["TH", "EN"], horizontal=True, key="language", label_visibility="collapsed", on_change=on_language_change)
 
 language = st.session_state.language
 def t(key: str, **values) -> str:

@@ -411,8 +411,7 @@ if results and results.get("source") == active_page:
                             unsafe_allow_html=True,
                         )
                         st.metric(t("confidence"), f"{prediction['confidence'] * 100:.2f}%")
-                    with st.expander(t("flower_details"), expanded=True):
-                        st.write(f"{t('background')}: {info['details']['background']}")
-                        st.write(f"{t('meaning')}: {info['details']['meaning']}")
-                        st.write(f"{t('temple')}: {info['details']['temple']}")
+                    st.write(f"{t('background')}: {info['details']['background']}")
+                    st.write(f"{t('meaning')}: {info['details']['meaning']}")
+                    st.write(f"{t('temple')}: {info['details']['temple']}")
                     st.divider()
